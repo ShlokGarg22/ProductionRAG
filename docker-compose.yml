@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: redis_cache
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: fastapi_rag_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    environment:
+      # Override REDIS_URL to use the docker internal network
+      - REDIS_URL=redis://redis:6379
+    restart: unless-stopped
+
+volumes:
+  redis_data:

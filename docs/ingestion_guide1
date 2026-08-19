@@ -1,0 +1,83 @@
+# Understanding the Ingestion Pipeline
+
+The ingestion pipeline is the process of taking raw documents (PDFs, Word documents, text files), extracting their content, breaking them down into readable pieces, and storing them in a Vector Database (Qdrant) so that our AI can search through them later. 
+
+## Pipeline Architecture Flowchart
+
+Here is a visual representation of exactly what happens when you run the pipeline. You can follow the arrows from the top down to see how a file travels from your local `DATA/` folder all the way into the Vector Database.
+
+```mermaid
+graph TD
+    A[Start: python -m app.ingestion.processor] --> B{Scan Directory}
+    B --> |Files Found| C[ThreadPoolExecutor: Run 5 Concurrently]
+    C --> D((process_file))
+    
+    D --> E{Check File Extension}
+    
+    %% Routing
+    E --> |.pdf| F[parse_pdf]
+    E --> |.html / .htm| G[parse_html]
+    E --> |.txt| H[parse_text]
+    E --> |.docx / .pptx| I[parse_office]
+    
+    %% PDF Specific Logic
+    F --> J{Is it a scanned image?}
+    J --> |No| K[Native Extraction: pdf-inspector]
+    J --> |Yes / Mixed| L[Fallback: Azure Vision OCR Model]
+    K --> M
+    L --> M
+    
+    %% Joining Back
+    G --> M
+    H --> M
+    I --> M
+    
+    M[Extracted Full Text] --> N[chunk_text: Split into smaller pieces]
+    N --> O[(Save Backup: processed_data/)]
+    
+    O --> P[embed_texts: Create math vectors using Azure]
+    P --> Q[Package Text, Vector & Metadata]
+    Q --> R[(Upsert to Qdrant Database)]
+    R --> S([File Indexed Successfully])
+    
+    %% Styling
+    classDef highlight fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef db fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef fallback fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    
+    class L fallback;
+    class O,R db;
+    class P highlight;
+```
+
+---
+
+## Step-by-Step Explanation
+
+### Step 1: Text Extraction (Loaders)
+The pipeline looks at the file extension and decides which "loader" to use. Loaders are dedicated scripts for extracting clean text from different file formats.
+
+**Example: PDF Extraction (`app/ingestion/loaders/pdf.py`)**
+If the file is a PDF, it gets routed to the `parse_pdf` function. This function uses `pdf-inspector` to pull out markdown. 
+> [!TIP]
+> **Vision OCR Fallback:** If `pdf.py` detects that the PDF is just a scanned image without selectable text (as seen in the orange box in the diagram), it intelligently falls back to converting the PDF pages to images and uses an Azure OpenAI Vision model to visually "read" the text from the images!
+
+### Step 2: Chunking
+Language models and vector databases have limits on how much text they can process at once. We can't feed a 500-page book into a vector database as a single item.
+The `chunk_text` function (located in `app/ingestion/chunking/splitter.py`) breaks the massive extracted text down into smaller, overlapping paragraphs (or "chunks"). 
+
+### Step 3: Saving Processed Metadata Locally
+Before we send anything to the database, we save a local backup (the green `processed_data/` cylinder in the diagram).
+This saves a `.json` file containing the original filename, whether the data was clean or noisy, and the actual chunks. This is super helpful for debugging because you can look at the JSON file to see exactly how your document was broken up.
+
+### Step 4: Embedding and Indexing (Qdrant)
+This is where the AI magic happens. We convert the text chunks into numbers (vectors/embeddings) and save them to the Qdrant database.
+
+- **Embedding:** `embed_texts()` uses your Azure OpenAI embedding model (`text-embedding-3-small`) to turn human text into a high-dimensional math array (a vector). 
+- **Indexing:** We package the vector and the raw text chunk together as a `PointStruct` and insert it into Qdrant using `qdrant_client.upsert()`. 
+
+---
+
+## How it Runs Fast (Concurrency)
+
+If you have 1,000 files in your `DATA` folder, processing them one by one would take forever. The pipeline uses Python's `ThreadPoolExecutor` in the `process_directory` function (the third block in the flowchart). This tells Python to spin up 5 worker threads, meaning it processes 5 documents at the exact same time, significantly speeding up the ingestion process.

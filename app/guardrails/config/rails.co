@@ -1,0 +1,23 @@
+define flow custom off topic check
+  $is_off_topic = execute check_if_off_topic
+  if $is_off_topic
+    bot refuse to respond
+    stop
+
+define bot refuse to respond
+  "I am a specialized RAG assistant. I can only answer questions related to Kubernetes and Intel. I am not designed for general-purpose chat."
+
+define flow handle off topic
+  user ask off topic
+  bot refuse to respond
+  stop
+
+define user ask off topic
+  "how to make coffee"
+  "what is the capital of France"
+  "who is the president"
+  "write a poem"
+  "tell me a joke"
+  "how to cook pasta"
+  "explain quantum physics"
+

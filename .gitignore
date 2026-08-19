@@ -1,0 +1,90 @@
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+*.spec
+
+# ============================================================
+# Virtual Environments
+# ============================================================
+.venv/
+venv/
+env/
+ENV/
+.env.bak
+
+# ============================================================
+# SECRETS & CREDENTIALS (CRITICAL - Never commit these!)
+# ============================================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets.json
+
+# ============================================================
+# Data & Vector DB Storage
+# ============================================================
+DATA/
+processed_data/
+qdrant_data/
+*.pdf
+*.csv
+*.parquet
+
+# ============================================================
+# Logs & Caches
+# ============================================================
+*.log
+logs/
+.cache/
+redis_data/
+
+# ============================================================
+# Node.js / Next.js Frontend
+# ============================================================
+ui-next/node_modules/
+ui-next/.next/
+ui-next/out/
+ui-next/.vercel
+ui-next/.env*.local
+
+# ============================================================
+# Docker
+# ============================================================
+# Don't ignore docker files themselves, they should be tracked
+# But ignore any local override files
+docker-compose.override.yml
+
+# ============================================================
+# IDE & OS Files
+# ============================================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ============================================================
+# Testing & Coverage
+# ============================================================
+.pytest_cache/
+.coverage
+htmlcov/
+test-results/

@@ -1,0 +1,8 @@
+models:
+  - type: main
+    engine: custom_llm
+    model: custom-portkey-model
+rails:
+  input:
+    flows:
+      - custom off topic check

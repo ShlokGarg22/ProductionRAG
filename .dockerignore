@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.git
+.env
+ui/
+ui-next/
+DATA/
+processed_data/
+tests/
+qdrant_data/

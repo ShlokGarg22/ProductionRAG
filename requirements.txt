@@ -1,0 +1,37 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+requests
+numpy
+
+# Postgres State Persistence
+langgraph-checkpoint-postgres
+psycopg
+psycopg-pool
+
+# Evaluation
+ragas
+datasets
+
+google-generativeai
+langchain-google-genai 
+langchain-openai
+
+langchain-groq
+sentence-transformers
+langgraph
+nemoguardrails
+qdrant-client
+
+unstructured
+python-pptx
+python-docx
+beautifulsoup4
+pdf-inspector
+PyMuPDF
+
+logfire[fastapi,requests]
+loguru
+tenacity
+
+flashrank
