@@ -68,7 +68,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://rag-public-alb-350876191.us-west-2.elb.amazonaws.com:8000/query_stream", {
+      const response = await fetch("/api/query_stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ q: userMessage.content, thread_id: "nextjs_user" }),
